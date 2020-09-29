@@ -24,10 +24,15 @@ export function clean(obj, maxDepth = 1, depth = 1) {
   if (typeof obj === 'object') {
     // symbols are excluded from Object.keys({})
     return Object.keys(obj).reduce((acc, key) => {
+      if (key === '__typename') {
+        return acc;
+      }
+
       acc[key] =
         depth < maxDepth || maxDepth < 1
           ? clean(obj[key], maxDepth, depth + 1)
           : true;
+
       return acc;
     }, {});
   }

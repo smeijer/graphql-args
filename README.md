@@ -10,7 +10,7 @@
 
 ![screenshot of getArgs output](./docs/preview.png)
 
-`graphql-args` provides a way to extract query arguments out of the 4th resolver argument.
+`graphql-args` provides a way to extract query fields and arguments from the 4th resolver argument.
 
 ## Installation
 
@@ -26,14 +26,29 @@ With yarn:
 yarn add -D graphql-args
 ```
 
-## API
+## Intro
 
 The examples below use the following query:
 
 ```gql
-query blog($where: CommentFilterInput!) {
-  blog(id: "blog_1") {
+query($where: CommentFilterInput!) {
+  blog {
+    id
+    title
+
+    author(id: "author_1") {
+      name
+    }
+
+    comment(where: { id: "comment_1" }) {
+      id
+    }
+
     comments(where: $where) {
+      id
+      message
+      author
+
       likes(where: { type: "heart" }) {
         actor
       }
@@ -45,74 +60,159 @@ query blog($where: CommentFilterInput!) {
 with the following variables:
 
 ```js
-where: {
-  id: 'comment_2';
+{
+  where: {
+    id: 'comment_2',
+  },
 }
 ```
 
-# getArgs(ast, 'path')
+`ast` is the fourth argument of graphql resolvers:
+
+```js
+import { getArgs, getFields, parse } from 'graphql-args';
+
+const resolvers = {
+  blog(parent, args, context, ast) {
+    /**
+     * This is the place where the examples fit in. The
+     * wrapping resolver code is left out from the examples
+     * for brevity.
+     **/
+  },
+};
+```
+
+## API
+
+### getArgs
+
+`getArgs` reads the `ast` and returns the query arguments at a given path, as plain object.
 
 ```js
 import { getArgs } from 'graphql-args';
-
-const resolvers = {
-  blog(parent, args, context, ast) {
-    getArgs(ast, 'comments'); // » { where: { id: 'comment_2' } }
-  },
-};
 ```
 
-# getArgs(ast, 'nested.path')
+#### getArgs(ast, 'path'): object
 
 ```js
-import { getArgs } from 'graphql-args';
-
-const resolvers = {
-  blog(parent, args, context, ast) {
-    getArgs(ast, 'comments.likes'); // » { where: { type: 'heart' } }
-  },
-};
+getArgs(ast, 'comments');
+» { where: { id: 'comment_2' } }
 ```
 
-# getArgs(ast) => get('path')
-
-In the scenario where you need to get arguments from multiple paths, and don't want to parse the ast more than once, the curry behavior of `getArgs` can be used.
+#### getArgs(ast, 'nested.path'): object
 
 ```js
-import { createGetArgs } from 'graphql-args';
-
-const resolvers = {
-  blog(parent, args, context, ast) {
-    const get = getArgs(ast);
-
-    get('comments'); // » { where: { id: 'comment_2' } }
-    get('comments.likes'); // » { where: { type: 'heart' } }
-  },
-};
+getArgs(ast, 'comments.likes');
+» { where: { type: 'heart' } }
 ```
 
-# createGetArgs(ast) => getArgs('path')
+#### getArgs(ast): get('path'): object
 
-Use `createGetArgs` in the scenario where you need to get arguments from multiple paths, and don't want to parse the ast more than once. This will result in improved performance, although it might be negligible.
-
-The same can be achieved by using the `getArgs(ast)`, but some of us like the more explicit nature of `createGetArgs` over curried functions.
+In the scenario where you need to get arguments from multiple paths, and don't want to parse the `ast` more than once, the curry behavior of `getArgs` can be used.
 
 ```js
-import { createGetArgs } from 'graphql-args';
+const get = getArgs(ast);
 
-const resolvers = {
-  blog(parent, args, context, ast) {
-    const getArgs = createGetArgs(ast);
+get('comments');
+» { where: { id: 'comment_2' } }
 
-    getArgs('comments'); // » { where: { id: 'comment_2' } }
-    getArgs('comments.likes'); // » { where: { type: 'heart' } }
-  },
-};
+get('comments.likes');
+» { where: { type: 'heart' } }
+```
+
+Alternatively, `parse` can be used to achieve the same result:
+
+```js
+const { getArgs } = parse(ast);
+
+getArgs('comments');
+» { where: { id: 'comment_2' } }
+
+getArgs('comments.likes');
+» { where: { type: 'heart' } }
+```
+
+### getFields
+
+`getFields` reads the `ast` and returns the query document at a given path, as plain object with the property values set to `true`. The depth of the object can be controlled with the `{ depth: number }` option.
+
+```js
+import { getFields } from 'graphql-args';
+```
+
+#### getFields(ast, 'path'): object
+
+By default, a flat object is being returned, only containing the first level properties
+
+```js
+getFields(ast, 'comments');
+» { id: true, author: true, likes: true, message: true }
+```
+
+#### getFields(ast, 'path', { depth: number }): object
+
+By specifying a depth, we control the nesting of the fields. Set `depth` to `0` or `-1` for unlimited depth. Depth defaults to `1` level.
+
+```js
+getFields(ast, 'comments', { depth: 2 });
+» { id: true, author: true, likes: { actor: true }, message: true }
+```
+
+#### getFields(ast, 'nested.path'): object
+
+```js
+getFields(ast, 'comments.likes');
+» { actor: true }
+```
+
+#### getFields(ast): get('path'): object
+
+In the scenario where you need to get fields from multiple paths, and don't want to parse the ``ast` more than once, the curry behavior of `getFields` can be used.
+
+```js
+const get = getFields(ast);
+
+get('comments');
+» { id: true, author: true, likes: true, message: true }
+
+get('comments.likes');
+» { actor: true }
+```
+
+Alternatively, `parse` can be used to achieve the same result:
+
+```js
+const { getFields } = parse(ast);
+
+getFields('comments');
+» { id: true, author: true, likes: true, message: true }
+
+getFields('comments.likes');
+» { actor: true }
+```
+
+### parse(ast) => { getArgs, getFields }
+
+In case you'd need to query multiple paths, `parse` can be used as optimization. By using `parse`, the `ast` is only processed once. This is a small optimization, and the performance gain might be negligible. Use it when you need every last bit of performance juice, or when you just like the style.
+
+Using `parse` doesn't hurt, but in most cases, using the direct methods is what you're looking for. Simply because it's less verbose.
+
+```js
+import { parse } from 'graphql-ast';
+
+const { getArgs, getFields } = parse(ast);
+
+getArgs('comments');
+» { where: { id: 'comment_2' } }
+
+getFields('comments', { depth: 2 });
+» { id: true, author: true, likes: { actor: true }, message: true }
 ```
 
 ## Prior Art
 
-This library was created when I encountered a few short-commings in [cult-of-coders/grapher](https://github.com/cult-of-coders/grapher). While waiting for my [PR](https://github.com/cult-of-coders/grapher/pull/435) to get merged, I decided to extract some code, and adjusted to my needs.
+Part of this library was created when I encountered a few shortcomings in [cult-of-coders/grapher](https://github.com/cult-of-coders/grapher). While waiting for my [PR](https://github.com/cult-of-coders/grapher/pull/435) to get merged, I decided to extract some code, and adjust it to my needs.
 
 ## Contributors ✨
 

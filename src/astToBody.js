@@ -40,7 +40,7 @@ function extractSelectionSet(set, variables) {
 
   set.selections.forEach((el) => {
     if (!el.selectionSet) {
-      body[el.name.value] = 1;
+      body[el.name.value] = true;
     } else {
       body[el.name.value] = extractSelectionSet(el.selectionSet, variables);
       body[el.name.value][Symbols.ARGUMENTS] = extractArguments(

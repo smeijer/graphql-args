@@ -1,6 +1,6 @@
-const { Symbols } = require('./constants');
+import { Symbols } from './constants';
 
-function astToBody(ast) {
+export function astToBody(ast) {
   const body = extractSelectionSet(
     { selections: ast.fieldNodes },
     ast.variableValues,
@@ -52,7 +52,3 @@ function extractSelectionSet(set, variables) {
 
   return body;
 }
-
-module.exports = {
-  astToBody,
-};

@@ -1,6 +1,1 @@
-const { createGetArgs, getArgs } = require('./getArgs');
-
-module.exports = {
-  createGetArgs,
-  getArgs,
-};
+export * from './getArgs';

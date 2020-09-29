@@ -4,7 +4,6 @@
   "description": "",
   "source": "src/index.js",
   "main": "dist/index.js",
-  "types": "types/index.d.ts",
   "license": "MIT",
   "author": "Stephan Meijer <stephan@meijer.ws>",
   "repository": {

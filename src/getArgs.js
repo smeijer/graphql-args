@@ -1,7 +1,7 @@
-const { Symbols } = require('./constants');
-const { astToBody } = require('./astToBody');
+import { Symbols } from './constants';
+import { astToBody } from './astToBody';
 
-function createGetArgs(ast) {
+export function createGetArgs(ast) {
   let node = astToBody(ast);
 
   return function (path) {
@@ -23,15 +23,10 @@ function createGetArgs(ast) {
   };
 }
 
-function getArgs(ast, path) {
+export function getArgs(ast, path) {
   if (typeof path === 'undefined') {
     return createGetArgs(ast);
   }
 
   return createGetArgs(ast)(path);
 }
-
-module.exports = {
-  createGetArgs,
-  getArgs,
-};

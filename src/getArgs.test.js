@@ -1,6 +1,5 @@
-// require('../dist/index');
-const { createGetArgs, getArgs } = require('./getArgs');
-const { parse } = require('graphql');
+import { createGetArgs, getArgs } from './getArgs';
+import { parse } from 'graphql';
 
 function getAst({ query, variables }) {
   return {

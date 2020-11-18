@@ -1,16 +1,10 @@
 import { Symbols } from './constants';
 
 export function astToBody(ast) {
-  const fragments = {};
-
-  for (let fragment of ast.fragments) {
-    fragments[fragment.name.value] = extractSelectionSet(fragment.selectionSet);
-  }
-
   const body = extractSelectionSet(
     { selections: ast.fieldNodes },
     ast.variableValues,
-    fragments,
+    ast.fragments,
   );
 
   return Object.values(body)[0];
@@ -47,7 +41,9 @@ function extractSelectionSet(set, variables, fragments) {
 
   set.selections.forEach((el) => {
     if (el.kind === 'FragmentSpread') {
-      Object.assign(body, fragments[el.name.value]);
+      const fragment = fragments[el.name.value];
+      const selectionSet = extractSelectionSet(fragment.selectionSet);
+      Object.assign(body, selectionSet);
     } else if (!el.selectionSet) {
       body[el.name.value] = true;
     } else {

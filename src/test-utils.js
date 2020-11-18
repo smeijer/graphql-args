@@ -7,9 +7,12 @@ export function getAst({ query, variables }) {
     (x) => x.kind === 'OperationDefinition',
   );
 
-  const fragments = ast.definitions.filter(
-    (x) => x.kind === 'FragmentDefinition',
-  );
+  const fragments = ast.definitions
+    .filter((x) => x.kind === 'FragmentDefinition')
+    .reduce((acc, fragment) => {
+      acc[fragment.name.value] = fragment;
+      return acc;
+    }, {});
 
   return {
     fieldNodes: operation.selectionSet.selections,

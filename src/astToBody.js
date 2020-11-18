@@ -42,7 +42,12 @@ function extractSelectionSet(set, variables, fragments) {
   set.selections.forEach((el) => {
     if (el.kind === 'FragmentSpread') {
       const fragment = fragments[el.name.value];
-      const selectionSet = extractSelectionSet(fragment.selectionSet);
+      const selectionSet = extractSelectionSet(
+        fragment.selectionSet,
+        variables,
+        fragments,
+      );
+
       Object.assign(body, selectionSet);
     } else if (!el.selectionSet) {
       body[el.name.value] = true;

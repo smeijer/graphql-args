@@ -1,9 +1,16 @@
 import { Symbols } from './constants';
 
 export function astToBody(ast) {
+  const fragments = {};
+
+  for (let fragment of ast.fragments) {
+    fragments[fragment.name.value] = extractSelectionSet(fragment.selectionSet);
+  }
+
   const body = extractSelectionSet(
     { selections: ast.fieldNodes },
     ast.variableValues,
+    fragments,
   );
 
   return Object.values(body)[0];
@@ -35,14 +42,20 @@ function extractArguments(args, variables) {
   }, {});
 }
 
-function extractSelectionSet(set, variables) {
+function extractSelectionSet(set, variables, fragments) {
   let body = {};
 
   set.selections.forEach((el) => {
-    if (!el.selectionSet) {
+    if (el.kind === 'FragmentSpread') {
+      Object.assign(body, fragments[el.name.value]);
+    } else if (!el.selectionSet) {
       body[el.name.value] = true;
     } else {
-      body[el.name.value] = extractSelectionSet(el.selectionSet, variables);
+      body[el.name.value] = extractSelectionSet(
+        el.selectionSet,
+        variables,
+        fragments,
+      );
       body[el.name.value][Symbols.ARGUMENTS] = extractArguments(
         el.arguments,
         variables,

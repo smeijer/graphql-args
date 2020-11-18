@@ -98,7 +98,7 @@ test('getFields can return the entire object', () => {
     comments: {
       author: true,
       id: true,
-      likes: { actor: true },
+      likes: { actor: { email: true, name: true } },
       message: true,
     },
     id: true,

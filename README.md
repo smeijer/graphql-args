@@ -199,7 +199,7 @@ In case you'd need to query multiple paths, `parse` can be used as optimization.
 Using `parse` doesn't hurt, but in most cases, using the direct methods is what you're looking for. Simply because it's less verbose.
 
 ```js
-import { parse } from 'graphql-ast';
+import { parse } from 'graphql-args';
 
 const { getArgs, getFields } = parse(ast);
 

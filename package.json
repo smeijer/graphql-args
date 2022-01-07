@@ -1,8 +1,13 @@
 {
   "name": "graphql-args",
-  "version": "1.3.2",
+  "version": "1.4.0",
   "description": "A lib that parses the resolver ast, to return the requested object fields and provided params, at any nested level.",
-  "keywords": ["nodejs", "graphql", "mongodb", "ast"],
+  "keywords": [
+    "nodejs",
+    "graphql",
+    "mongodb",
+    "ast"
+  ],
   "source": "src/index.js",
   "main": "dist/index.js",
   "license": "MIT",

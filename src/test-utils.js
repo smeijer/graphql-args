@@ -1,6 +1,6 @@
 import { parse } from 'graphql';
 
-export function getAst({ query, variables }) {
+export function getAst({ query, variables }, isAppSyncSelectionSet = false) {
   const ast = parse(query);
 
   const operation = ast.definitions.find(
@@ -17,30 +17,30 @@ export function getAst({ query, variables }) {
   return {
     fieldNodes: operation.selectionSet.selections,
     variableValues: variables,
-    fragments,
+    fragments: !isAppSyncSelectionSet ? fragments : null,
   };
 }
 
-export const ast = getAst({
-  query: `
-    query ($where: CommentFilterInput!) {
-      blog (id: "blog_1") {
+export const example = {
+  query: /* GraphQL */ `
+    query($where: CommentFilterInput!) {
+      blog(id: "blog_1") {
         id
         title
-        
+
         author(id: "author_1") {
           name
         }
-        
+
         comment(where: { id: "comment_1" }) {
           id
         }
-        
+
         comments(where: $where) {
           id
           message
           author
-          
+
           likes(where: { type: "heart" }) {
             actor {
               ...Person
@@ -49,7 +49,7 @@ export const ast = getAst({
         }
       }
     }
-    
+
     fragment Person on Actor {
       name
       email
@@ -60,4 +60,6 @@ export const ast = getAst({
       id: 'comment_2',
     },
   },
-});
+};
+
+export const ast = getAst(example);

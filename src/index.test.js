@@ -1,5 +1,5 @@
-import { parse, getFields, getArgs } from './index';
-import { ast } from './test-utils';
+import { parse, getFields, getArgs, getAst } from './index';
+import { ast, example } from './test-utils';
 
 test('getArgs can retrieve the root arguments', () => {
   const args = getArgs(ast, '');
@@ -143,5 +143,18 @@ test('getFields creator instance correctly handles nested objects with depth', (
     author: true,
     likes: { actor: true },
     message: true,
+  });
+});
+
+describe('AppSync environment', () => {
+  test('It should create an ast without fragments', () => {
+    expect(getAst(example, true).fragments).toBe(null);
+  });
+  test('It should should ignore fragments', () => {
+    const { getFields } = parse(getAst(example, true));
+    const fields = getFields('comments.likes', { depth: -1 });
+    expect(fields).toEqual({
+      actor: {},
+    });
   });
 });

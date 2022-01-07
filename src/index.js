@@ -1,6 +1,7 @@
 import { astToBody } from './astToBody';
 import { Symbols } from './constants';
 import { get, clean } from './utils';
+export { getAst } from './test-utils';
 
 export function parse(ast) {
   const body = astToBody(ast);

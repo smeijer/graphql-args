@@ -5,8 +5,7 @@
   "keywords": [
     "nodejs",
     "graphql",
-    "mongodb",
-    "ast"
+    "mongodb"
   ],
   "source": "src/index.js",
   "main": "dist/index.js",

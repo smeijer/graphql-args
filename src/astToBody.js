@@ -1,3 +1,4 @@
+import { Kind } from 'graphql';
 import { Symbols } from './constants';
 
 export function astToBody(ast) {
@@ -11,11 +12,35 @@ export function astToBody(ast) {
 }
 
 function extractArgumentValue(value, variables) {
-  if (value.kind === 'Variable') {
-    return variables[value.name.value];
+  if (!value) return null;
+  const kind = value.kind;
+  switch (kind) {
+    case Kind.VARIABLE:
+      return variables[value.name.value];
+    case Kind.INT:
+      return parseInt(value.value);
+    case Kind.FLOAT:
+      return parseFloat(value.value);
+    case Kind.BOOLEAN:
+      return Boolean(value.value);
+    case Kind.NULL:
+      return null;
+    case Kind.STRING:
+    case Kind.ENUM:
+      return value.value;
+    case Kind.LIST:
+      return value.values.map((v) => extractArgumentValue(v, variables));
+    case Kind.OBJECT:
+      return Object.keys(value.fields).reduce((acc, key) => {
+        acc[value.fields[key].name.value] = extractArgumentValue(
+          value.fields[key].value,
+          variables,
+        );
+        return acc;
+      }, {});
+    default:
+      return value.value;
   }
-
-  return value.value;
 }
 
 function extractArguments(args, variables) {
@@ -24,14 +49,10 @@ function extractArguments(args, variables) {
   }
 
   // recursively walk down the ast, to collect all arguments. The recursive
-  // behavior covers input types (arguments of type object). Think of queries
-  // like `comments({ where: { blog: { id: 123 } } })`
+  // behavior covers input types (arguments of type object/array etc. supports all GraphQL type).
+  // think of queries like `comments({ where: { blog: { id: 123 } } })`
   return args.reduce((acc, field) => {
-    acc[field.name.value] =
-      field.value.kind === 'ObjectValue'
-        ? extractArguments(field.value.fields, variables)
-        : extractArgumentValue(field.value, variables);
-
+    acc[field.name.value] = extractArgumentValue(field.value, variables);
     return acc;
   }, {});
 }

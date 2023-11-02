@@ -59,6 +59,21 @@ test('getArgs returns a creator instance when called with single argument', () =
   });
 });
 
+test('getArgs can retrieve the mixed arguments', () => {
+  const args = getArgs(ast, 'mixed');
+
+  expect(args).toEqual({
+    where: {
+      e: 'App',
+      w: { id: 'comment_2' },
+      id: 'mixed_id',
+      args: [1, true, 'true', null, { a: 'b' }],
+      x: { a: { b: 'c' } },
+      array: [1, 2, 3, 4, 3.14],
+    },
+  });
+});
+
 test('getFields can return the root level', () => {
   const fields = getFields(ast, '');
 

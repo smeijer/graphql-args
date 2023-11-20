@@ -47,6 +47,19 @@ export const example = {
             }
           }
         }
+        mixed(
+          where: {
+            e: App
+            w: $where
+            id: "mixed_id"
+            args: [1, true, "true", null, { a: "b" }]
+            x: { a: { b: "c" } }
+            array: [1, 2, 3, 4, 3.14]
+          }
+        ) {
+          id
+          name
+        }
       }
     }
 

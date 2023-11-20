@@ -1,0 +1,65 @@
+name: main
+
+on:
+  push:
+    branches:
+      # Match SemVer major release branches, e.g. "2.x" or ".x"
+      - '[0-9]+.x'
+      - 'main'
+      - 'next'
+      - 'alpha'
+      - 'beta'
+      - '!all-contributors/**'
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  setup:
+    name: Setup
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bahmutov/npm-install@v1
+
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    needs: [setup]
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bahmutov/npm-install@v1
+      - name: Test
+        run: npm run test
+        
+  release:
+    needs: [test]
+    if: github.event_name == 'push' && github.repository == 'smeijer/graphql-args'
+    runs-on: ubuntu-latest
+    environment: npm
+    steps:
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.9.0
+
+      - uses: actions/checkout@v4
+      - uses: bahmutov/npm-install@v1
+
+      - name: Build
+        run: npm run build
+
+      - name: Release
+        uses: cycjimmy/semantic-release-action@v2
+        with:
+          semantic_version: 17
+          branches: |
+            [
+              '+([0-9])?(.{+([0-9]),x}).x',
+              'main',
+              'next',
+              { name: 'alpha', prerelease: true },
+              { name: 'beta', prerelease: true }
+            ]
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
